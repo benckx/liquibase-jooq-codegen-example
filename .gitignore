@@ -5,3 +5,4 @@
 /out
 /.idea/
 *.db
+*.db-journal
