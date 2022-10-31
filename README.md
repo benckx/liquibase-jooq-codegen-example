@@ -137,8 +137,8 @@ GenerationTool.generate(
                                 // by using build folder, we ensure the generated code is removed on "clean" 
                                 // and is not versioned on Git
                                 new Target()
-                                    .withPackageName('dev.encelade.example.dao.codegen')
-                                    .withDirectory("$buildDir/jooq"))
+                                        .withPackageName('dev.encelade.example.dao.codegen')
+                                        .withDirectory("$buildDir/jooq"))
                 )
 )
 ```
@@ -229,7 +229,7 @@ fun main() {
 }
 ```
 
-When ran, it should print the following (and increase it by +1 every time it's ran):
+When running the above, it should print the following (which increases by +1 every time):
 
 ```
 entries: 1
