@@ -26,7 +26,11 @@ buildscript {
     }
 }
 
-apply plugin: 'kotlin'
+plugins {
+    id "com.github.ben-manes.versions" version "0.43.0"
+    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
+}
+
 apply plugin: 'idea'
 apply plugin: 'java'
 

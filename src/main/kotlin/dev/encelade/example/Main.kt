@@ -9,7 +9,6 @@ fun main() {
 
     dslContext.transaction { cfg ->
         val personDao = PersonDao(cfg)
-
         val person = Person()
         person.firstName = "Charles"
         person.lastName = "Baudelaire"
