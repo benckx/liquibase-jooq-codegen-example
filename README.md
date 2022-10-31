@@ -130,7 +130,7 @@ new MarkupBuilder(writer).configuration('xmlns': 'http://www.jooq.org/xsd/jooq-c
         // and the folder where the code will be generated; we can use the "build" folder, so it 
         // will be deleted when running Gradle "clean" and will also be excluded from Git
         target() {
-            packageName('be.encelade.example.dao.codegen')
+            packageName('dev.encelade.example.dao.codegen')
             directory("$buildDir/jooq")
         }
     }
@@ -200,9 +200,9 @@ The `DSLContext` is the jOOQ object you need to do any operation to your databas
 a new entry in the table `person`:
 
 ```groovy
-import be.encelade.example.dao.codegen.Tables.PERSON
-import be.encelade.example.dao.codegen.tables.daos.PersonDao
-import be.encelade.example.dao.codegen.tables.pojos.Person
+import dev.encelade.example.dao.codegen.Tables.PERSON
+import dev.encelade.example.dao.codegen.tables.daos.PersonDao
+import dev.encelade.example.dao.codegen.tables.pojos.Person
 
 fun main() {
     val dslContext = DaoService.getDslContext("example.db")

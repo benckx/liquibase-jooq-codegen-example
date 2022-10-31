@@ -95,7 +95,7 @@ tasks.getByPath("compileKotlin").doFirst {
                 daos true
             }
             target() {
-                packageName('be.encelade.example.dao.codegen')
+                packageName('dev.encelade.example.dao.codegen')
                 directory("$buildDir/jooq")
             }
         }

@@ -1,4 +1,4 @@
-package be.encelade.example
+package dev.encelade.example
 
 import liquibase.Contexts
 import liquibase.LabelExpression

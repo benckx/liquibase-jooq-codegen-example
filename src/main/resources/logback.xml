@@ -26,7 +26,7 @@
 
     <logger name="liquibase" level="info"/>
     <logger name="org.jooq" level="info"/>
-    <logger name="be.encelade" level="debug"/>
+    <logger name="dev.encelade" level="debug"/>
 
     <root level="debug">
         <appender-ref ref="FILE"/>

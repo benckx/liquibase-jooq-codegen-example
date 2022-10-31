@@ -1,8 +1,8 @@
-package be.encelade.example
+package dev.encelade.example
 
-import be.encelade.example.dao.codegen.Tables.PERSON
-import be.encelade.example.dao.codegen.tables.daos.PersonDao
-import be.encelade.example.dao.codegen.tables.pojos.Person
+import dev.encelade.example.dao.codegen.Tables.PERSON
+import dev.encelade.example.dao.codegen.tables.daos.PersonDao
+import dev.encelade.example.dao.codegen.tables.pojos.Person
 
 fun main() {
     val dslContext = DaoService.getDslContext("example.db")
