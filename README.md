@@ -251,7 +251,7 @@ To run it locally:
 
 # TODO
 
-There are a few things I would still like to improve in this tutorial:
+There are a few things I would still like to improve about this tutorial:
 
 * Upgrade Liquibase
 * Upgrade logging libs
