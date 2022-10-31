@@ -17,7 +17,7 @@ dslContext.transaction { cfg ->
 }
 ```
 
-Classes `PersonDao` and `Person` have bene generated during the Gradle build, directly from the Liquibase definition.
+Classes `PersonDao` and `Person` have been generated during the Gradle build, directly from the Liquibase definition.
 This reduces the boilerplate of writing DAO code and SQL queries in your application.
 
 # Technical stack
