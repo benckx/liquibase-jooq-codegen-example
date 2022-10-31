@@ -3,6 +3,7 @@ package dev.encelade.example
 import dev.encelade.example.dao.codegen.tables.daos.PersonDao
 import dev.encelade.example.dao.codegen.tables.pojos.Person
 
+// TODO: add date of birth to show how date mapping works
 fun main() {
     val dslContext = DaoService.getDslContext("example.db")
 
