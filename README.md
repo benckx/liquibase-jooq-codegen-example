@@ -4,8 +4,8 @@
 
 # About
 
-The following example demonstrate how to generate DAO code from your Liquibase definition, that you can use this way,
-for example to insert a new entry:
+The following tutorial explains how to generate DAO code from your Liquibase definition, that you then can use for
+example to insert a new entry in a table:
 
 ```kotlin
 dslContext.transaction { cfg ->
@@ -18,14 +18,14 @@ dslContext.transaction { cfg ->
 ```
 
 Classes `PersonDao` and `Person` are generated during the Gradle build, directly from the Liquibase definition. This
-reduces the boilerplate of writing DAO code and SQL queries.
+reduces the boilerplate of writing DAO code and SQL queries in your application.
 
-During the Gradle build, the Liquibase definition is executed in a H2 in-memory DB, and the jOOQ DAO code is generated
-based on this H2 schema. You can then use this generated code in your application.
+During the Gradle build, the Liquibase definition is executed in a H2 in-memory DB and from this DB we run jOOQ codegen
+to generated the DAO code.
 
 # Code Generation
 
-Create Liquibase definition `liquibase-changelog.xml`:
+Create your Liquibase definition `liquibase-changelog.xml`:
 
 ```xml
 
@@ -53,7 +53,7 @@ tasks.getByPath("compileKotlin").doFirst {
 }
 ```
 
-Inside this task, create a H2 database and schema:
+Inside this task, we create a H2 database:
 
 ```groovy
 import java.sql.Connection
@@ -96,10 +96,10 @@ liquibase.update(new Contexts())
 conn.commit()
 ```
 
-At this point, you have a H2 in-memory database with your Liquibase definition, in this example it means you have
-created one table.
+At this point, you have a H2 in-memory database containing your Liquibase definition, in this example it means you have
+a database with 1 table.
 
-Then connect to this H2 database with jOOQ to generate the DAO code:
+We then connect to this H2 database with jOOQ to generate the DAO code:
 
 ```groovy
 import org.h2.Driver
@@ -126,9 +126,9 @@ new MarkupBuilder(writer).configuration('xmlns': 'http://www.jooq.org/xsd/jooq-c
             pojos false
             daos true
         }
-        // we select the target package (the package your generated objects will belong to)
+        // we select the target package (the package the generated classes will belong to)
         // and the folder where the code will be generated; we can use the "build" folder, so it 
-        // will be deleted when running Gradle "clean" and it should also be excluded from Git
+        // will be deleted when running Gradle "clean" and will also be excluded from Git
         target() {
             packageName('be.encelade.example.dao.codegen')
             directory("$buildDir/jooq")
@@ -154,11 +154,11 @@ sourceSets {
 
 Run the Gradle build with `./gradlew clean build`. The new folder will appear at `/build/jooq`.
 
-# Use the generated code
+# Use the generated DAO code
 
 We first need some logic to create and access a SQLite database. If  `dbFileName` doesn't exist yet, it will be created
-automatically. It will also apply `updateLiquibase()` to apply any change you made to your Liquibase definition to the
-SQLite instance.
+automatically. It will also run `updateLiquibase()` to apply any change you made to your Liquibase definition, into the
+SQLite file.
 
 ```kotlin
 import liquibase.Contexts
@@ -196,8 +196,8 @@ object DaoService {
 }
 ```
 
-The `DSLContext` is the jOOQ object you need to do any operation to your database. For example, we can insert a new
-entry in the table `person`.
+The `DSLContext` is the jOOQ object you need to do any operation to your database. For example, we can use it to insert
+a new entry in the table `person`:
 
 ```groovy
 import be.encelade.example.dao.codegen.Tables.PERSON
@@ -224,13 +224,13 @@ fun main() {
 }
 ```
 
-This should print the following, and increase it by +1 every time you run it.
+When ran, it should print the following (and increase it by +1 every time it's ran):
 
 ```
 entries: 1
 ```
 
-If you open example.db, you can see your new entry:
+If you open example.db with a DB client, you can see your new entry:
 
 <img src="/img/example.db.png" title="Content of table 'person'">
 
