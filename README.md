@@ -124,6 +124,7 @@ GenerationTool.generate(
                         .withPassword(''))
                 .withGenerator(new Generator()
                         .withDatabase(
+                                // exclude Liquibase-specific tables
                                 new Database()
                                         .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
                                         .withInputSchema("EXAMPLE_DB")
@@ -131,9 +132,14 @@ GenerationTool.generate(
                         .withGenerate(new Generate()
                                 .withPojos(true)
                                 .withDaos(true))
-                        .withTarget(new Target()
-                                .withPackageName('dev.encelade.example.dao.codegen')
-                                .withDirectory("$buildDir/jooq")))
+                        .withTarget(
+                                // choose the target package and directory
+                                // by using build folder, we ensure the generated code is removed on "clean" 
+                                // and is not versioned on Git
+                                new Target()
+                                    .withPackageName('dev.encelade.example.dao.codegen')
+                                    .withDirectory("$buildDir/jooq"))
+                )
 )
 ```
 
