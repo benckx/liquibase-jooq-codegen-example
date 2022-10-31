@@ -1,4 +1,3 @@
-import groovy.xml.MarkupBuilder
 import liquibase.Contexts
 import liquibase.Liquibase
 import liquibase.database.DatabaseFactory
@@ -8,6 +7,7 @@ import liquibase.resource.CompositeResourceAccessor
 import liquibase.resource.FileSystemResourceAccessor
 import org.h2.Driver
 import org.jooq.codegen.GenerationTool
+import org.jooq.meta.jaxb.*
 
 import java.sql.Connection
 import java.sql.Statement
@@ -21,7 +21,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
         classpath "org.jooq:jooq-codegen:$jooqVersion"
-        classpath "com.h2database:h2:1.3.148"
+        classpath "com.h2database:h2:2.1.214"
         classpath "org.liquibase:liquibase-core:$liquibaseVersion"
     }
 }
@@ -40,17 +40,20 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
     // DB
-    compile "org.liquibase:liquibase-core:$liquibaseVersion"
-    compile 'org.xerial:sqlite-jdbc:3.39.3.0'
-    compile "org.jooq:jooq:$jooqVersion"
+    implementation "org.liquibase:liquibase-core:$liquibaseVersion"
+    implementation 'org.xerial:sqlite-jdbc:3.39.3.0'
+    implementation "org.jooq:jooq:$jooqVersion"
 
     // Logging
-    compile 'org.slf4j:slf4j-api:1.7.25'
-    compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'ch.qos.logback:logback-core:1.2.3'
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'ch.qos.logback:logback-core:1.2.3'
+
+//    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.0'
+//    runtime 'com.sun.xml.bind:jaxb-impl:3.0.0'
 }
 
 sourceSets {
@@ -80,29 +83,23 @@ tasks.getByPath("compileKotlin").doFirst {
     liquibase.update(new Contexts())
     conn.commit()
 
-    def writer = new StringWriter()
-    new MarkupBuilder(writer).configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd') {
-        jdbc() {
-            driver('org.h2.Driver')
-            url("jdbc:h2:mem:test")
-            user("")
-            password("")
-        }
-        generator {
-            database {
-                inputSchema('EXAMPLE_DB')
-                excludes('DATABASECHANGELOG|DATABASECHANGELOGLOCK')
-            }
-            generate([:]) {
-                pojos false
-                daos true
-            }
-            target() {
-                packageName('dev.encelade.example.dao.codegen')
-                directory("$buildDir/jooq")
-            }
-        }
-    }
-
-    GenerationTool.generate(writer.toString())
+    GenerationTool.generate(
+            new Configuration()
+                    .withJdbc(new Jdbc()
+                            .withDriver('org.h2.Driver')
+                            .withUrl('jdbc:h2:mem:test')
+                            .withUser('')
+                            .withPassword(''))
+                    .withGenerator(new Generator()
+                            .withDatabase(
+                                    new Database()
+                                            .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
+                            )
+                            .withGenerate(new Generate()
+                                    .withPojos(true)
+                                    .withDaos(true))
+                            .withTarget(new Target()
+                                    .withPackageName('dev.encelade.example.dao.codegen')
+                                    .withDirectory("$buildDir/jooq")))
+    )
 }

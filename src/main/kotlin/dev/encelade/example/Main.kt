@@ -1,24 +1,16 @@
 package dev.encelade.example
 
-import dev.encelade.example.dao.codegen.Tables.PERSON
-import dev.encelade.example.dao.codegen.tables.daos.PersonDao
-import dev.encelade.example.dao.codegen.tables.pojos.Person
+import dev.encelade.example.dao.codegen.example_db.tables.daos.PersonDao
+import dev.encelade.example.dao.codegen.example_db.tables.pojos.Person
 
 fun main() {
     val dslContext = DaoService.getDslContext("example.db")
+    val cfg = dslContext.configuration()
+    val personDao = PersonDao(cfg)
 
-    dslContext.transaction { cfg ->
-        val personDao = PersonDao(cfg)
-        val person = Person()
-        person.firstName = "Charles"
-        person.lastName = "Baudelaire"
-        personDao.insert(person)
-    }
-
-    val count = dslContext
-            .selectCount()
-            .from(PERSON)
-            .fetchOneInto(Int::class.java)
-
-    println("entries: $count")
+    val person = Person()
+    person.firstName = "Charles"
+    person.lastName = "Baudelaire"
+    personDao.insert(person)
+    println("entries: ${personDao.count()}")
 }

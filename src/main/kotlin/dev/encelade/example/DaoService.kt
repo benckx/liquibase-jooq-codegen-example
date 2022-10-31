@@ -7,7 +7,7 @@ import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.jooq.DSLContext
-import org.jooq.conf.RenderNameStyle
+import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.sql.Connection
@@ -21,7 +21,7 @@ object DaoService {
 
         val settings = Settings()
             .withRenderSchema(false)
-            .withRenderNameStyle(RenderNameStyle.LOWER)
+            .withRenderQuotedNames(RenderQuotedNames.NEVER)
 
         return DSL.using(conn, settings)
     }
