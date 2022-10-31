@@ -4,8 +4,8 @@
 
 # About
 
-The following tutorial explains how to generate DAO code from your Liquibase definition, that you then can use for
-example to insert a new entry in a table:
+The following tutorial explains how to generate DAO code based on a Liquibase definition. This generated code can be
+used e.g. to insert a new row in a table:
 
 ```kotlin
 dslContext.transaction { cfg ->
@@ -17,13 +17,15 @@ dslContext.transaction { cfg ->
 }
 ```
 
-Classes `PersonDao` and `Person` are generated during the Gradle build, directly from the Liquibase definition. This
-reduces the boilerplate of writing DAO code and SQL queries in your application.
-
-During the Gradle build, the Liquibase definition is executed in a H2 in-memory DB and from this DB we run jOOQ codegen
-to generated the DAO code.
+Classes `PersonDao` and `Person` have bene generated during the Gradle build, directly from the Liquibase definition.
+This reduces the boilerplate of writing DAO code and SQL queries in your application.
 
 # Technical stack
+
+We will use SQLite for the sake of simplicity, but the same approach would work for other DB engines like MySQL or
+Postgresql. SQLite is a light-weight DB engine which stores the entire database into a file - which is quite useful for
+small systems like e.g. a podcasts manager app running on a phone, that must store information about what podcasts you
+are subscribed to and which episodes you have already listened to.
 
 * JDK 18
 * Kotlin
@@ -33,7 +35,7 @@ to generated the DAO code.
 
 # Code Generation
 
-Create your Liquibase definition `liquibase-changelog.xml`:
+Create the Liquibase definition `liquibase-changelog.xml`:
 
 ```xml
 
@@ -53,7 +55,7 @@ Create your Liquibase definition `liquibase-changelog.xml`:
 </databaseChangeLog>
 ```
 
-In the Gradle build, add a task that will run before Kotlin compilation:
+In the Gradle build, add a task that runs before Kotlin compilation:
 
 ```groovy
 tasks.getByPath("compileKotlin").doFirst {
@@ -61,7 +63,7 @@ tasks.getByPath("compileKotlin").doFirst {
 }
 ```
 
-Inside this task, we create a H2 database:
+Inside this task, we create an H2 database:
 
 ```groovy
 import java.sql.Connection
@@ -78,7 +80,7 @@ stmt.execute("set schema EXAMPLE_DB")
 stmt.close()
 ```
 
-Run the Liquibase in this schema, using the same connection object we used to create the schema:
+We then run the Liquibase on this database:
 
 ```groovy
 
@@ -104,8 +106,7 @@ liquibase.update(new Contexts())
 conn.commit()
 ```
 
-At this point, you have a H2 in-memory database containing your Liquibase definition, in this example it means you have
-a database with 1 table.
+At this point, we have an H2 in-memory database containing our Liquibase definition (i.e. 1 table named `person`).
 
 We then connect to this H2 database with jOOQ to generate the DAO code:
 
@@ -133,8 +134,8 @@ GenerationTool.generate(
                                 .withPojos(true)
                                 .withDaos(true))
                         .withTarget(
-                                // choose the target package and directory
-                                // by using build folder, we ensure the generated code is removed on "clean" 
+                                // specify the target package and directory
+                                // by using the build folder, we ensure the generated code is removed on "clean" 
                                 // and is not versioned on Git
                                 new Target()
                                         .withPackageName('dev.encelade.example.dao.codegen')
@@ -143,7 +144,7 @@ GenerationTool.generate(
 )
 ```
 
-Finally, we need to add this new generated folder as a source set, so Gradle knows to compile it along with your app
+Finally, we need to add this new generated folder as a source set, so Gradle knows to compile it along our application
 code:
 
 ```groovy
@@ -160,9 +161,9 @@ Run the Gradle build with `./gradlew clean build`. The new folder will appear at
 
 # Use the generated DAO code
 
-We first need some logic to create and access a SQLite database. If  `dbFileName` doesn't exist yet, it will be created
-automatically. It will also run `updateLiquibase()` to apply any change you made to your Liquibase definition, into the
-SQLite file.
+We first need some logic to create and access the SQLite database. If file `dbFileName` doesn't exist, it will be
+created automatically. We will also run `updateLiquibase()` to apply any change made to the Liquibase definition
+into the SQLite file.
 
 ```kotlin
 package dev.encelade.example
@@ -202,7 +203,7 @@ object DaoService {
 }
 ```
 
-The `DSLContext` is the jOOQ object you need to do any operation to your database. For example, we can use it to insert
+The `DSLContext` is the jOOQ object you need to do any operation to the database. For example, we can use it to insert
 a new entry in the table `person`:
 
 ```kotlin
@@ -235,7 +236,7 @@ When running the above, it should print the following (which increases by +1 eve
 entries: 1
 ```
 
-If you open example.db with a DB client, you can see your new entry:
+If you open example.db with a DB client, you can see the new entry:
 
 <img src="/img/example.db.png" title="Content of table 'person'">
 

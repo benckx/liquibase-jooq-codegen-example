@@ -34,6 +34,12 @@ plugins {
 apply plugin: 'idea'
 apply plugin: 'java'
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of("18"))
+    }
+}
+
 repositories {
     mavenCentral()
     google()
@@ -89,7 +95,6 @@ tasks.getByPath("compileKotlin").doFirst {
                             .withPassword(''))
                     .withGenerator(new Generator()
                             .withDatabase(
-                                    // exclude Liquibase-specific tables
                                     new Database()
                                             .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
                                             .withInputSchema("EXAMPLE_DB")
@@ -98,18 +103,11 @@ tasks.getByPath("compileKotlin").doFirst {
                                     .withPojos(true)
                                     .withDaos(true))
                             .withTarget(
-                                    // choose the target package and directory
-                                    // by using build folder, we ensure the generated code is removed on "clean"
-                                    // and is not versioned on Git
                                     new Target()
                                             .withPackageName('dev.encelade.example.dao.codegen')
                                             .withDirectory("$buildDir/jooq"))
                     )
     )
-}
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of("18"))
-    }
+    conn.close()
 }
