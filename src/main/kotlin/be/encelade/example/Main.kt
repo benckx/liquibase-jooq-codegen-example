@@ -22,5 +22,4 @@ fun main() {
             .fetchOneInto(Int::class.java)
 
     println("entries: $count")
-
 }

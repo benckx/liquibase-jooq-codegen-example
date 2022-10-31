@@ -4,6 +4,18 @@
 
 # About
 
+The following example demonstrate how to generate DAO code from your Liquibase definition, that you can use this way:
+
+```kotlin
+val personDao = PersonDao(cfg)
+val person = Person()
+person.firstName = "Charles"
+person.lastName = "Baudelaire"
+personDao.insert(person)
+```
+
+Classes `PersonDao` and `Person` have been generated during Gradle build, directly from the Liquibase definition.
+
 During build, the Liquibase schema is executed to a H2 in-memory DB,
 jOOQ DAO code is generated based on this schema.
 
@@ -204,7 +216,6 @@ fun main() {
             .fetchOneInto(Int::class.java)
 
     println("entries: $count")
-
 }
 ```
 
