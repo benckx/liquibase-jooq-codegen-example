@@ -44,7 +44,6 @@ dependencies {
 
     // DB
     compile "org.liquibase:liquibase-core:$liquibaseVersion"
-    compile 'org.yaml:snakeyaml:1.26'
     compile 'org.xerial:sqlite-jdbc:3.8.9.1'
     compile "org.jooq:jooq:$jooqVersion"
 
