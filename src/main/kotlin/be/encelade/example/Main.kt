@@ -1,15 +1,20 @@
 package be.encelade.example
 
 import be.encelade.example.dao.codegen.Tables.PERSON
+import be.encelade.example.dao.codegen.tables.daos.PersonDao
+import be.encelade.example.dao.codegen.tables.pojos.Person
 
 fun main() {
-    val dslContext = DaoService().dslContext
+    val dslContext = DaoService.getDslContext("example.db")
 
-    dslContext
-            .insertInto(PERSON)
-            .set(PERSON.FIRST_NAME, "ben")
-            .set(PERSON.LAST_NAME, "ckx")
-            .execute()
+    dslContext.transaction { cfg ->
+        val personDao = PersonDao(cfg)
+
+        val person = Person()
+        person.firstName = "Charles"
+        person.lastName = "Baudelaire"
+        personDao.insert(person)
+    }
 
     val count = dslContext
             .selectCount()
@@ -17,4 +22,5 @@ fun main() {
             .fetchOneInto(Int::class.java)
 
     println("entries: $count")
+
 }

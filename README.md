@@ -4,17 +4,230 @@
 
 # About
 
-During build, the Liquibase schema is executed to a H2 in-memory DB, 
-jOOQ DAO code is generated based on this schema. 
+During build, the Liquibase schema is executed to a H2 in-memory DB,
+jOOQ DAO code is generated based on this schema.
 
-## How To
+# Code Generation
+
+Create Liquibase definition:
+
+liquibase-changelog.xml:
+
+```xml
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet author="benckx" id="0001">
+        <createTable tableName="person">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="first_name" type="varchar(255)"/>
+            <column name="last_name" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
+```
+
+In the Gradle build, add a task that is going to run before Kotlin compilation:
+
+```groovy
+tasks.getByPath("compileKotlin").doFirst {
+    // code generation will happen inside this task
+}
+```
+
+Inside this task, first create a H2 schema:
+
+```groovy
+import java.sql.Connection
+import java.sql.Statement
+
+// [...]
+
+Connection conn = new Driver().connect("jdbc:h2:mem:test", null)
+
+Statement stmt = conn.createStatement()
+stmt.execute("drop all OBJECTS")
+stmt.execute("create schema EXAMPLE_DB")
+stmt.execute("set schema EXAMPLE_DB")
+stmt.close()
+```
+
+Then run the Liquibase in this schema:
+
+```groovy
+
+import liquibase.Contexts
+import liquibase.Liquibase
+import liquibase.database.DatabaseFactory
+import liquibase.database.jvm.JdbcConnection
+import liquibase.resource.ClassLoaderResourceAccessor
+import liquibase.resource.CompositeResourceAccessor
+import liquibase.resource.FileSystemResourceAccessor
+import org.h2.Driver
+
+// [...]
+
+def liquibaseDb = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn))
+def contextClassLoader = Thread.currentThread().getContextClassLoader()
+
+def threadClFO = new ClassLoaderResourceAccessor(contextClassLoader)
+def clFO = new ClassLoaderResourceAccessor()
+def fsFO = new FileSystemResourceAccessor()
+def liquibase = new Liquibase("src/main/resources/liquibase-changelog.xml", new CompositeResourceAccessor(clFO, fsFO, threadClFO), liquibaseDb)
+liquibase.update(new Contexts())
+conn.commit()
+```
+
+At this point, you have a H2 in-memory database with your Liquibase definition, in this example it means you have one
+table. Now, still inside the same Gradle task, we're going to connect to this database with jOOQ to generate the DAO
+code:
+
+```groovy
+import org.h2.Driver
+import org.jooq.codegen.GenerationTool
+import groovy.xml.MarkupBuilder
+
+// [...]
+
+def writer = new StringWriter()
+new MarkupBuilder(writer).configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd') {
+    jdbc() {
+        driver('org.h2.Driver')
+        url("jdbc:h2:mem:test")
+        user("")
+        password("")
+    }
+    generator {
+        // we exclude Liquibase tables from the generation
+        database {
+            inputSchema('EXAMPLE_DB')
+            excludes('DATABASECHANGELOG|DATABASECHANGELOGLOCK')
+        }
+        generate([:]) {
+            pojos false
+            daos true
+        }
+        // we select the target package (the package your generated objects will belong to)
+        // and the folder where the code will be generated; we can use the "build" folder, so it 
+        // will be deleted when running Gradle "clean" and it should also be excluded from Git
+        target() {
+            packageName('be.encelade.example.dao.codegen')
+            directory("$buildDir/jooq")
+        }
+    }
+}
+
+GenerationTool.generate(writer.toString())
+```
+
+Now we just need to add this new folder as a source set, so Gradle knows to compile it along with your code:
+
+```groovy
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/jooq"
+        }
+    }
+}
+```
+
+Now we just have to build with `./gradlew clean build`. The new folder will appear under /build/jooq.
+
+# Use the generated code
+
+Now we need a service to create and access a SQLite database. If  `dbFileName` doesn't exist yet, it will be created
+automatically. It will also apply `updateLiquibase` to apply any change you made to your Liquibase definition.
+
+```kotlin
+import liquibase.Contexts
+import liquibase.LabelExpression
+import liquibase.Liquibase
+import liquibase.database.DatabaseFactory
+import liquibase.database.jvm.JdbcConnection
+import liquibase.resource.ClassLoaderResourceAccessor
+import org.jooq.DSLContext
+import org.jooq.conf.RenderNameStyle
+import org.jooq.conf.Settings
+import org.jooq.impl.DSL
+import java.sql.Connection
+import java.sql.DriverManager
+
+object DaoService {
+
+    fun getDslContext(dbFileName: String): DSLContext {
+        val conn = DriverManager.getConnection("jdbc:sqlite:$dbFileName")
+        updateLiquibase(conn)
+
+        val settings = Settings()
+            .withRenderSchema(false)
+            .withRenderNameStyle(RenderNameStyle.LOWER)
+
+        return DSL.using(conn, settings)
+    }
+
+    private fun updateLiquibase(conn: Connection) {
+        val db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(JdbcConnection(conn))
+        val liquibase = Liquibase("liquibase-changelog.xml", ClassLoaderResourceAccessor(), db)
+        liquibase.update(Contexts(), LabelExpression())
+    }
+
+}
+```
+
+You can use the `DSLContext` to access your SQLite database via the generated code:
+
+```groovy
+import be.encelade.example.dao.codegen.Tables.PERSON
+import be.encelade.example.dao.codegen.tables.daos.PersonDao
+import be.encelade.example.dao.codegen.tables.pojos.Person
+
+fun main() {
+    val dslContext = DaoService.getDslContext("example.db")
+
+    dslContext.transaction { cfg ->
+        val personDao = PersonDao(cfg)
+
+        val person = Person()
+        person.firstName = "Charles"
+        person.lastName = "Baudelaire"
+        personDao.insert(person)
+    }
+
+    val count = dslContext
+            .selectCount()
+            .from(PERSON)
+            .fetchOneInto(Int::class.java)
+
+    println("entries: $count")
+
+}
+```
+
+This should print the following, and increase it by +1 every time your the main.
+
+```
+entries: 1
+```
+
+If you open example.db, you can see your new entry:
+
+<img src="/img/example.db.png" title="Content of table 'person'">
+
+# How To
+
 To run it locally:
+
 * `./gradlew clean build` to generate the jOOQ DAO code
 * Run the main class
 
-## Technical stack
+# Technical stack
 
-* Kotlin 
+* Kotlin
 * SQLite
 * Liquibase
 * jOOQ (with code generation)
