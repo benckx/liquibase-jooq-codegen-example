@@ -1,7 +1,7 @@
 package dev.encelade.example
 
-import dev.encelade.example.dao.codegen.example_db.tables.daos.PersonDao
-import dev.encelade.example.dao.codegen.example_db.tables.pojos.Person
+import dev.encelade.example.dao.codegen.tables.daos.PersonDao
+import dev.encelade.example.dao.codegen.tables.pojos.Person
 
 fun main() {
     val dslContext = DaoService.getDslContext("example.db")
@@ -12,5 +12,6 @@ fun main() {
     person.firstName = "Charles"
     person.lastName = "Baudelaire"
     personDao.insert(person)
+
     println("entries: ${personDao.count()}")
 }

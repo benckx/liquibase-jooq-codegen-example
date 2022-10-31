@@ -246,6 +246,7 @@ To run it locally:
 
 # Technical stack
 
+* JDK 17
 * Kotlin
 * SQLite
 * Liquibase
