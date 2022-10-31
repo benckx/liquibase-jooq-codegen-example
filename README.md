@@ -16,11 +16,11 @@ dslContext.transaction { cfg ->
 }
 ```
 
-Classes `PersonDao` and `Person` have been generated during Gradle build, directly from the Liquibase definition.
+Classes `PersonDao` and `Person` have been generated during Gradle build, directly from the Liquibase definition. This
+reduces the boilerplate of writing DAO code and SQL queries.
 
-This reduces the boilerplate of writing DAO code and SQL queries.
-
-During Gradle build, the Liquibase schema is executed to a H2 in-memory DB, jOOQ DAO code is generated based on this H2 schema.
+During Gradle build, the Liquibase schema is executed to a H2 in-memory DB, jOOQ DAO code is generated based on this H2
+schema. You can then use this generated code in your application.
 
 # Code Generation
 
@@ -46,7 +46,7 @@ liquibase-changelog.xml:
 </databaseChangeLog>
 ```
 
-In the Gradle build, add a task that is going to run before Kotlin compilation:
+In the Gradle build, add a task that will run before Kotlin compilation:
 
 ```groovy
 tasks.getByPath("compileKotlin").doFirst {
@@ -221,7 +221,7 @@ fun main() {
 }
 ```
 
-This should print the following, and increase it by +1 every time your the main.
+This should print the following, and increase it by +1 every time you run it.
 
 ```
 entries: 1
@@ -230,6 +230,9 @@ entries: 1
 If you open example.db, you can see your new entry:
 
 <img src="/img/example.db.png" title="Content of table 'person'">
+
+If you later modify the Liquibase definition, for example by adding new tables, simply run `./gradlew clean build` to
+re-generated the DAO code.
 
 # How To
 
