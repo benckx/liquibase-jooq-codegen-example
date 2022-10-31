@@ -7,17 +7,20 @@
 The following example demonstrate how to generate DAO code from your Liquibase definition, that you can use this way:
 
 ```kotlin
-val personDao = PersonDao(cfg)
-val person = Person()
-person.firstName = "Charles"
-person.lastName = "Baudelaire"
-personDao.insert(person)
+dslContext.transaction { cfg ->
+    val personDao = PersonDao(cfg)
+    val person = Person()
+    person.firstName = "Charles"
+    person.lastName = "Baudelaire"
+    personDao.insert(person)
+}
 ```
 
 Classes `PersonDao` and `Person` have been generated during Gradle build, directly from the Liquibase definition.
 
-During build, the Liquibase schema is executed to a H2 in-memory DB,
-jOOQ DAO code is generated based on this schema.
+This reduces the boilerplate of writing DAO code and SQL queries.
+
+During Gradle build, the Liquibase schema is executed to a H2 in-memory DB, jOOQ DAO code is generated based on this H2 schema.
 
 # Code Generation
 
@@ -203,7 +206,6 @@ fun main() {
 
     dslContext.transaction { cfg ->
         val personDao = PersonDao(cfg)
-
         val person = Person()
         person.firstName = "Charles"
         person.lastName = "Baudelaire"
