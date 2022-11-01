@@ -86,22 +86,16 @@ We then run the Liquibase on this database:
 
 import liquibase.Contexts
 import liquibase.Liquibase
-import liquibase.database.DatabaseFactory
+import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
-import liquibase.resource.ClassLoaderResourceAccessor
-import liquibase.resource.CompositeResourceAccessor
 import liquibase.resource.FileSystemResourceAccessor
-import org.h2.Driver
 
 // [...]
 
-def liquibaseDb = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn))
-def contextClassLoader = Thread.currentThread().getContextClassLoader()
+def db = new H2Database()
+db.setConnection(new JdbcConnection(conn))
 
-def threadClFO = new ClassLoaderResourceAccessor(contextClassLoader)
-def clFO = new ClassLoaderResourceAccessor()
-def fsFO = new FileSystemResourceAccessor()
-def liquibase = new Liquibase("src/main/resources/liquibase-changelog.xml", new CompositeResourceAccessor(clFO, fsFO, threadClFO), liquibaseDb)
+def liquibase = new Liquibase("src/main/resources/liquibase-changelog.xml", new FileSystemResourceAccessor(), db)
 liquibase.update(new Contexts())
 conn.commit()
 ```
@@ -169,7 +163,6 @@ into the SQLite file.
 package dev.encelade.example
 
 import liquibase.Contexts
-import liquibase.LabelExpression
 import liquibase.Liquibase
 import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
@@ -197,7 +190,7 @@ object DaoService {
     private fun updateLiquibase(conn: Connection) {
         val db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(JdbcConnection(conn))
         val liquibase = Liquibase("liquibase-changelog.xml", ClassLoaderResourceAccessor(), db)
-        liquibase.update(Contexts(), LabelExpression())
+        liquibase.update(Contexts())
     }
 
 }

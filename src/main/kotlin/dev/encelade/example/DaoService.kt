@@ -1,7 +1,6 @@
 package dev.encelade.example
 
 import liquibase.Contexts
-import liquibase.LabelExpression
 import liquibase.Liquibase
 import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
@@ -29,7 +28,7 @@ object DaoService {
     private fun updateLiquibase(conn: Connection) {
         val db = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(JdbcConnection(conn))
         val liquibase = Liquibase("liquibase-changelog.xml", ClassLoaderResourceAccessor(), db)
-        liquibase.update(Contexts(), LabelExpression())
+        liquibase.update(Contexts())
     }
 
 }

@@ -1,9 +1,7 @@
 import liquibase.Contexts
 import liquibase.Liquibase
-import liquibase.database.DatabaseFactory
+import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
-import liquibase.resource.ClassLoaderResourceAccessor
-import liquibase.resource.CompositeResourceAccessor
 import liquibase.resource.FileSystemResourceAccessor
 import org.h2.Driver
 import org.jooq.codegen.GenerationTool
@@ -76,13 +74,10 @@ tasks.getByPath("compileKotlin").doFirst {
     stmt.execute("set schema EXAMPLE_DB")
     stmt.close()
 
-    def liquibaseDb = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn))
-    def contextClassLoader = Thread.currentThread().getContextClassLoader()
+    def db = new H2Database()
+    db.setConnection(new JdbcConnection(conn))
 
-    def threadClFO = new ClassLoaderResourceAccessor(contextClassLoader)
-    def clFO = new ClassLoaderResourceAccessor()
-    def fsFO = new FileSystemResourceAccessor()
-    def liquibase = new Liquibase("src/main/resources/liquibase-changelog.xml", new CompositeResourceAccessor(clFO, fsFO, threadClFO), liquibaseDb)
+    def liquibase = new Liquibase("src/main/resources/liquibase-changelog.xml", new FileSystemResourceAccessor(), db)
     liquibase.update(new Contexts())
     conn.commit()
 
