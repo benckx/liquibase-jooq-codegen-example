@@ -245,5 +245,4 @@ To run it locally:
 There are a few things I would still like to improve about this tutorial:
 
 * Upgrade Liquibase
-* Upgrade logging libs
 * Add date of birth to Person table
