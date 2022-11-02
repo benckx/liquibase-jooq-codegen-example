@@ -228,7 +228,7 @@ entries: 1
 
 If you open example.db with a DB client, you can see the new entry:
 
-<img src="/img/example.db.png" title="Content of table 'person'">
+![](/img/example.db.png)
 
 If you later modify the Liquibase definition, for example by adding new tables, simply run `./gradlew clean build` to
 re-generate the DAO code.
