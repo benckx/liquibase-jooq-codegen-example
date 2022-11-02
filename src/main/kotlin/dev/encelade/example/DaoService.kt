@@ -6,7 +6,6 @@ import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.jooq.DSLContext
-import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.sql.Connection
@@ -18,10 +17,7 @@ object DaoService {
         val conn = DriverManager.getConnection("jdbc:sqlite:$dbFileName")
         updateLiquibase(conn)
 
-        val settings = Settings()
-            .withRenderSchema(false)
-            .withRenderQuotedNames(RenderQuotedNames.NEVER)
-
+        val settings = Settings().withRenderSchema(false)
         return DSL.using(conn, settings)
     }
 
