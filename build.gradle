@@ -77,7 +77,7 @@ tasks.getByPath("compileKotlin").doFirst {
     def db = new H2Database()
     db.setConnection(new JdbcConnection(conn))
 
-    def liquibase = new Liquibase("src/main/resources/liquibase-changelog.xml", new FileSystemResourceAccessor(), db)
+    def liquibase = new Liquibase("liquibase-changelog.xml", new FileSystemResourceAccessor(new File("src/main/resources")), db)
     liquibase.update(new Contexts())
     conn.commit()
 
