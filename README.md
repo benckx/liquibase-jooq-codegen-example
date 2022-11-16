@@ -246,3 +246,5 @@ There are a few things I would still like to improve about this tutorial:
 
 * Upgrade Liquibase
 * Add date of birth to Person table
+* Check if there is another generator implementation that can output Kotlin `data class` directly. Generated objects
+  with the builder pattern would also be interesting.
