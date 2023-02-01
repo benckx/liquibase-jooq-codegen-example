@@ -1,4 +1,5 @@
 <configuration>
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
     <timestamp key="byDay" datePattern="yyyyMMdd'T'HHmmss"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -25,7 +26,7 @@
     </appender>
 
     <logger name="liquibase" level="info"/>
-    <logger name="org.jooq" level="info"/>
+    <logger name="org.jooq" level="warn"/>
     <logger name="dev.encelade" level="debug"/>
 
     <root level="debug">

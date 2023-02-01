@@ -2,7 +2,7 @@ import liquibase.Contexts
 import liquibase.Liquibase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
-import liquibase.resource.FileSystemResourceAccessor
+import liquibase.resource.DirectoryResourceAccessor
 import org.h2.Driver
 import org.jooq.codegen.GenerationTool
 import org.jooq.meta.jaxb.*
@@ -75,10 +75,11 @@ tasks.getByPath("compileKotlin").doFirst {
     stmt.execute("set schema EXAMPLE_DB")
     stmt.close()
 
+    def resourceAccessor = new DirectoryResourceAccessor(new File("${project.projectDir}/src/main/resources"))
     def db = new H2Database()
     db.setConnection(new JdbcConnection(conn))
 
-    def liquibase = new Liquibase("liquibase-changelog.xml", new FileSystemResourceAccessor(new File("${project.projectDir}/src/main/resources")), db)
+    def liquibase = new Liquibase("liquibase-changelog.xml", resourceAccessor, db)
     liquibase.update(new Contexts())
     conn.commit()
 
