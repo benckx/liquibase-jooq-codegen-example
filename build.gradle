@@ -52,7 +52,7 @@ dependencies {
     implementation "org.jooq:jooq:$jooqVersion"
 
     // Logging
-    implementation "org.slf4j:slf4j-api:1.7.30"
+    implementation "org.slf4j:slf4j-api:2.0.6"
     implementation "ch.qos.logback:logback-classic:1.4.5"
     implementation "ch.qos.logback:logback-core:1.4.5"
 }
@@ -78,7 +78,7 @@ tasks.getByPath("compileKotlin").doFirst {
     def db = new H2Database()
     db.setConnection(new JdbcConnection(conn))
 
-    def liquibase = new Liquibase("liquibase-changelog.xml", new FileSystemResourceAccessor(new File("src/main/resources")), db)
+    def liquibase = new Liquibase("liquibase-changelog.xml", new FileSystemResourceAccessor(new File("${project.projectDir}/src/main/resources")), db)
     liquibase.update(new Contexts())
     conn.commit()
 
