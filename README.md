@@ -27,7 +27,7 @@ Postgresql. SQLite is a light-weight DB engine which stores the entire database 
 small systems like e.g. a podcasts manager app running on a phone, that must store information about what podcasts you
 are subscribed to and which episodes you have already listened to.
 
-* JDK 18
+* JDK 17
 * Kotlin
 * SQLite
 * Liquibase
