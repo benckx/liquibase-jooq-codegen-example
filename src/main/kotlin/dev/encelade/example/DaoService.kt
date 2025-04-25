@@ -13,6 +13,10 @@ import java.sql.DriverManager
 
 object DaoService {
 
+    /**
+     * Create SQLite connection and update the database schema using Liquibase.
+     * The SQLite database file is specified by the dbFileName parameter and is created if it does not exist.
+     */
     fun getDslContext(dbFileName: String): DSLContext {
         val conn = DriverManager.getConnection("jdbc:sqlite:$dbFileName")
         updateLiquibase(conn)

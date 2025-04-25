@@ -27,7 +27,7 @@ Postgresql. SQLite is a light-weight DB engine which stores the entire database 
 small systems like e.g. a podcasts manager app running on a phone, that must store information about what podcasts you
 are subscribed to and which episodes you have already listened to.
 
-* JDK 17
+* JDK 21
 * Kotlin
 * SQLite
 * Liquibase
@@ -58,9 +58,14 @@ Create the Liquibase definition `liquibase-changelog.xml`:
 In the Gradle build, add a task that runs before Kotlin compilation:
 
 ```groovy
-tasks.getByPath("compileKotlin").doFirst {
-    // code generation is configured inside this task
+
+tasks.register('dao-code-gen') {
+    doLast {
+        // code generation is configured inside this task
+    }
 }
+
+compileKotlin.dependsOn(tasks."dao-code-gen")
 ```
 
 Inside this task, we create an H2 database:
@@ -199,34 +204,48 @@ a new entry in the table `person`:
 ```kotlin
 package dev.encelade.example
 
+import dev.encelade.example.DaoService.getDslContext
 import dev.encelade.example.dao.codegen.tables.daos.PersonDao
 import dev.encelade.example.dao.codegen.tables.pojos.Person
+import org.junit.jupiter.api.Test
 
-fun main() {
-    val dslContext = DaoService.getDslContext("example.db")
+class GenCodeTest {
 
-    dslContext.transaction { cfg ->
-        val personDao = PersonDao(cfg)
+    private val dslContext = getDslContext("example.db")
+    private val readOnlyDao = PersonDao(dslContext.configuration())
+
+    @Test
+    fun `the generated code can be used to insert records`() {
+        val before = readOnlyDao.count()
+
         val person = Person()
         person.firstName = "Charles"
         person.lastName = "Baudelaire"
-        personDao.insert(person)
+        insert(person)
+
+        val after = readOnlyDao.count()
+
+        println("before insert: $before, after insert: $after")
+        assert(after == before + 1) { "Expected count to be ${before + 1}, but was $after" }
     }
 
-    dslContext.transaction { cfg ->
-        val personDao = PersonDao(cfg)
-        println("entries: ${personDao.count()}")
+    private fun insert(person: Person) {
+        dslContext.transaction { cfg ->
+            val personDao = PersonDao(cfg)
+            personDao.insert(person)
+        }
     }
+
 }
 ```
 
 When running the above, it should print the following (which increases by +1 every time):
 
 ```
-entries: 1
+before insert: 12, after insert: 13
 ```
 
-If you open example.db with a DB client, you can see the new entry:
+If you open `example.db` with a DB client, you can see the new entry:
 
 ![](/img/example.db.png)
 
@@ -238,7 +257,7 @@ re-generate the DAO code.
 To run it locally:
 
 * `./gradlew clean build` to generate the jOOQ DAO code
-* Run the main class
+* `GenCodeTest` contains an example of how to use the generated code
 
 # TODO
 

@@ -12,20 +12,19 @@ import java.sql.Statement
 
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
-        google()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-
         classpath "org.jooq:jooq-codegen:$jooqVersion"
-        classpath "com.h2database:h2:2.1.214"
+        classpath "com.h2database:h2:2.3.232"
         classpath "org.liquibase:liquibase-core:$liquibaseVersion"
     }
 }
 
 plugins {
-    id "com.github.ben-manes.versions" version "0.45.0"
+    id "com.github.ben-manes.versions" version "0.52.0"
     id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
 }
 
@@ -34,7 +33,7 @@ apply plugin: 'java'
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of("17"))
+        languageVersion.set(JavaLanguageVersion.of("21"))
     }
 }
 
@@ -46,15 +45,12 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
-    // logging
-    implementation "org.slf4j:slf4j-api:2.0.6"
-    implementation "ch.qos.logback:logback-classic:1.4.5"
-    implementation "ch.qos.logback:logback-core:1.4.5"
-
     // db
     implementation "org.liquibase:liquibase-core:$liquibaseVersion"
-    implementation "org.xerial:sqlite-jdbc:3.40.0.0"
+    implementation "org.xerial:sqlite-jdbc:3.49.1.0"
     implementation "org.jooq:jooq:$jooqVersion"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.0"
 }
 
 sourceSets {
@@ -65,46 +61,56 @@ sourceSets {
     }
 }
 
-//noinspection GroovyAssignabilityCheck
-tasks.getByPath("compileKotlin").doFirst {
-    Connection conn = new Driver().connect("jdbc:h2:mem:test", null)
-
-    Statement stmt = conn.createStatement()
-    stmt.execute("drop all OBJECTS")
-    stmt.execute("create schema EXAMPLE_DB")
-    stmt.execute("set schema EXAMPLE_DB")
-    stmt.close()
-
-    def resourceAccessor = new DirectoryResourceAccessor(new File("${project.projectDir}/src/main/resources"))
-    def db = new H2Database()
-    db.setConnection(new JdbcConnection(conn))
-
-    def liquibase = new Liquibase("liquibase-changelog.xml", resourceAccessor, db)
-    liquibase.update(new Contexts())
-    conn.commit()
-
-    GenerationTool.generate(
-            new Configuration()
-                    .withJdbc(new Jdbc()
-                            .withDriver('org.h2.Driver')
-                            .withUrl('jdbc:h2:mem:test')
-                            .withUser('')
-                            .withPassword(''))
-                    .withGenerator(new Generator()
-                            .withDatabase(
-                                    new Database()
-                                            .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
-                                            .withInputSchema("EXAMPLE_DB")
-                            )
-                            .withGenerate(new Generate()
-                                    .withPojos(true)
-                                    .withDaos(true))
-                            .withTarget(
-                                    new Target()
-                                            .withPackageName('dev.encelade.example.dao.codegen')
-                                            .withDirectory("$buildDir/jooq"))
-                    )
-    )
-
-    conn.close()
+test {
+    useJUnitPlatform()
+    minHeapSize = '1G'
+    maxHeapSize = '1G'
 }
+
+//noinspection GroovyAssignabilityCheck
+tasks.register('dao-code-gen') {
+    doLast {
+        Connection conn = new Driver().connect("jdbc:h2:mem:test", null)
+
+        Statement stmt = conn.createStatement()
+        stmt.execute("drop all OBJECTS")
+        stmt.execute("create schema EXAMPLE_DB")
+        stmt.execute("set schema EXAMPLE_DB")
+        stmt.close()
+
+        def resourceAccessor = new DirectoryResourceAccessor(new File("${project.projectDir}/src/main/resources"))
+        def db = new H2Database()
+        db.setConnection(new JdbcConnection(conn))
+
+        def liquibase = new Liquibase("liquibase-changelog.xml", resourceAccessor, db)
+        liquibase.update(new Contexts())
+        conn.commit()
+
+        GenerationTool.generate(
+                new Configuration()
+                        .withJdbc(new Jdbc()
+                                .withDriver('org.h2.Driver')
+                                .withUrl('jdbc:h2:mem:test')
+                                .withUser('')
+                                .withPassword(''))
+                        .withGenerator(new Generator()
+                                .withDatabase(
+                                        new Database()
+                                                .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
+                                                .withInputSchema("EXAMPLE_DB")
+                                )
+                                .withGenerate(new Generate()
+                                        .withPojos(true)
+                                        .withDaos(true))
+                                .withTarget(
+                                        new Target()
+                                                .withPackageName('dev.encelade.example.dao.codegen')
+                                                .withDirectory("$buildDir/jooq"))
+                        )
+        )
+
+        conn.close()
+    }
+}
+
+compileKotlin.dependsOn(tasks."dao-code-gen")
