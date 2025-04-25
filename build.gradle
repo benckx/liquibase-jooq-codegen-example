@@ -18,13 +18,13 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "org.jooq:jooq-codegen:$jooqVersion"
-        classpath "com.h2database:h2:2.3.232"
+        classpath "com.h2database:h2:$h2Version"
         classpath "org.liquibase:liquibase-core:$liquibaseVersion"
     }
 }
 
 plugins {
-    id "com.github.ben-manes.versions" version "0.52.0"
+    id "com.github.ben-manes.versions" version "$versionPluginVersion"
     id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
 }
 
@@ -44,13 +44,10 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
-    // db
     implementation "org.liquibase:liquibase-core:$liquibaseVersion"
-    implementation "org.xerial:sqlite-jdbc:3.49.1.0"
+    implementation "org.xerial:sqlite-jdbc:$sqlLiteVersion"
     implementation "org.jooq:jooq:$jooqVersion"
-
-    testImplementation "org.junit.jupiter:junit-jupiter:5.10.0"
+    testImplementation "org.junit.jupiter:junit-jupiter:$jUnitVersion"
 }
 
 sourceSets {
@@ -105,7 +102,7 @@ tasks.register('dao-code-gen') {
                                 .withTarget(
                                         new Target()
                                                 .withPackageName('dev.encelade.example.dao.codegen')
-                                                .withDirectory("$buildDir/jooq"))
+                                                .withDirectory("$projectDir/build/jooq"))
                         )
         )
 
