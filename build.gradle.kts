@@ -19,7 +19,7 @@ buildscript {
     dependencies {
         // Version catalogs are not accessible in the buildscript block, so these
         // classpath versions must be kept in sync with gradle/libs.versions.toml.
-        classpath("org.jooq:jooq-codegen:3.21.8")
+        classpath("org.jooq:jooq-codegen:3.21.9")
         classpath("com.h2database:h2:2.5.252")
         classpath("org.liquibase:liquibase-core:5.0.4")
     }
