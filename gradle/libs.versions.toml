@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.4.20"
-benManesVersions = "0.64.0"
+benManesVersions = "0.65.0"
 liquibase = "5.0.4"
 jooq = "3.21.9"
 sqlite = "3.53.4.0"
