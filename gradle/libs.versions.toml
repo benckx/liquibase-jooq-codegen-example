@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 benManesVersions = "0.65.0"
 liquibase = "5.0.4"
 jooq = "3.21.9"
