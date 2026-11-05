@@ -20,4 +20,4 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-versions = { id = "com.github.ben-manes.versions", version.ref = "benManesVersions" }
+versions = { id = "io.github.ben-manes.versions", version.ref = "benManesVersions" }
