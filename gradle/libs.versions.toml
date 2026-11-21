@@ -2,7 +2,7 @@
 kotlin = "2.4.21"
 benManesVersions = "0.67.0"
 liquibase = "5.0.4"
-jooq = "3.21.9"
+jooq = "3.21.10"
 sqlite = "3.54.1.0"
 h2 = "2.5.252"
 junit = "6.1.3"
